@@ -1,0 +1,9 @@
+<!doctype html><html lang="zh-CN"><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset="utf-8"><title>出口检测</title><style>body{max-width:650px;margin:10vh auto;padding:20px;font:18px/1.6 system-ui;color:#174e47}</style><h1>__ENV__ · 出口检测</h1><p id="status">正在从当前浏览器查询出口…</p><p>预期：<b id="expected"></b></p><small>仅验证运行本页的环境，不验证登录状态。本页不会向 Mac 回传结果。</small><script>
+const target="__IP__";document.querySelector('#expected').textContent=target;
+function normal(ip){if(ip.includes(':'))return new URL('http://['+ip+']/').hostname;return ip}
+(async()=>{const el=document.querySelector('#status'),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);try{
+const r=await fetch('https://api.ipify.org?format=json',{signal:controller.signal,cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});
+if(!r.ok)throw Error();const {ip}=await r.json(); if(typeof ip!=='string'||!/^[\da-f.:]+$/i.test(ip))throw Error();
+el.textContent=(normal(ip)===normal(target)?'✓ 出口一致：':'出口不一致，请检查本环境的代理：')+ip;
+}catch{el.textContent='未取得出口（网络、跨域或浏览器限制）。请在同一环境打开 https://api.ipify.org，把结果粘贴回工具比对。'}finally{clearTimeout(timer)}})();
+</script></html>

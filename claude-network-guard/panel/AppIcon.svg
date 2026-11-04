@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs>
+ <linearGradient id="o" x2=".8" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#176f78"/><stop offset=".48" stop-color="#104851"/><stop offset="1" stop-color="#0b2639"/></linearGradient>
+ <linearGradient id="s" x2="0.8" y2="1"><stop stop-color="#f1ffdb"/><stop offset=".56" stop-color="#9df6cf"/><stop offset="1" stop-color="#53cfbc"/></linearGradient>
+</defs>
+<rect x="70" y="83" width="884" height="875" rx="199" fill="#082f3c" opacity=".16"/>
+<rect x="66" y="59" width="892" height="892" rx="202" fill="url(#o)"/>
+<rect x="70" y="63" width="884" height="884" rx="198" fill="none" stroke="#87ddcb" stroke-opacity=".22" stroke-width="6"/>
+<path d="M512 211 C590 258 672 281 754 294 V475 C754 633 664 740 512 820 C360 740 270 633 270 475 V294 C352 281 434 258 512 211Z" fill="url(#s)"/>
+<path d="M387 546 L478 455 Q491 442 505 456 L534 485 Q548 499 562 485 L638 409" fill="none" stroke="#10515a" stroke-width="30" stroke-linejoin="round" stroke-linecap="round"/>
+<g fill="#10515a"><circle cx="387" cy="546" r="36"/><circle cx="638" cy="409" r="36"/></g><g fill="#cbffdd"><circle cx="387" cy="546" r="12"/><circle cx="638" cy="409" r="12"/></g>
+</svg>

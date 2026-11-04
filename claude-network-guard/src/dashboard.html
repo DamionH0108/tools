@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IP / Claude · 本机监控</title>
+<style>
+:root{font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#20332e;background:#f4f6f3;--green:#227a59;--amber:#98641b;--red:#ba4540}
+*{box-sizing:border-box}body{margin:0}main{max-width:1120px;margin:auto;padding:36px 28px}
+header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:30px}.eyebrow{font-size:12px;letter-spacing:2px;color:#6c7f76}
+h1{font-size:28px;letter-spacing:-1px;margin:8px 0}p{color:#687a71;line-height:1.6;margin:8px 0}
+.pill{font-size:13px;padding:9px 14px;background:#e5ece5;border-radius:30px;white-space:nowrap}
+.hero{padding:24px 26px;border:1px solid #d5e2d7;border-radius:20px;background:#e8f1e8;display:flex;gap:18px;align-items:center;margin-bottom:22px}
+.hero.warning{background:#fff3df;border-color:#e9d8b5}.hero.error{background:#fbe9e5;border-color:#ebc1b8}
+.dot{width:13px;height:13px;border-radius:50%;background:var(--green);flex:none}.warning .dot{background:var(--amber)}.error .dot{background:var(--red)}
+h2{font-size:21px;margin:0 0 5px}.hero p{margin:0;color:inherit;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{background:#fff;border:1px solid #e0e7df;border-radius:16px;padding:22px;min-height:150px}
+.label{font-size:13px;color:#6b7b73;margin-bottom:17px}.value{font-size:24px;font-weight:650;letter-spacing:-.5px;overflow-wrap:anywhere}
+.detail{margin-top:13px;color:#6b7b73;font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+.ok{color:var(--green)}.warning{color:var(--amber)}.error{color:var(--red)}
+.row{display:flex;justify-content:space-between;gap:20px;padding:11px 0;border-bottom:1px solid #edf0ec;font-size:14px}.row:last-child{border:0}.row span{color:#687a71}
+.section{margin-top:28px}.section h2{font-size:18px;margin-bottom:15px}.wide{grid-column:span 2}
+.scroll{overflow:auto;border:1px solid #dfe6dd;border-radius:16px;background:#fff}
+table{border-collapse:collapse;width:100%;text-align:left;font-size:13px;min-width:620px}th{background:#eef2ec;font-weight:500;color:#607366}td,th{padding:15px 18px;border-bottom:1px solid #e9ede6}td{line-height:1.6}td:first-child{white-space:nowrap}footer{margin:24px 0;font-size:12px;color:#77877d}
+button{border:1px solid #cad7cb;background:white;border-radius:10px;padding:10px 15px;color:#284837;cursor:pointer}button:hover{background:#eaf0e8}
+@media(max-width:720px){main{padding:22px 16px}header{align-items:flex-start;flex-wrap:wrap}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.value{font-size:22px}.hero{padding:20px}}
+</style>
+<main>
+<header><div><div class="eyebrow">LOCAL NETWORK MONITOR</div><h1>IP / Claude 监控</h1><p>住宅出口 · 网络连通 · Claude 分流保护</p></div><div><span class="pill" id="heartbeat">正在连接后台</span> <button id="refresh">刷新面板</button></div></header>
+<section class="card" style="margin-bottom:16px"><div class="label">网络健康估分 · 满分 100</div><div class="value" id="grade">等待检测</div><div class="detail">≥ 85 分合格，网络无需调整。不探测 Claude，不表示 Claude 可用。</div><div class="detail" id="breakdown"></div></section>
+<section class="hero warning" id="hero" role="status" aria-live="polite"><span class="dot"></span><div><h2 id="headline">等待首次检测</h2><p id="summary">后台每 60 秒检测一次，面板每 3 秒同步。</p></div></section>
+<div class="grid">
+<article class="card"><div class="label">固定节点 专用端口出口</div><div class="value" id="publicIp">—</div><div class="detail" id="expected">等待检测</div></article>
+<article class="card"><div class="label">Claude 分流规则</div><div class="value" id="claudeIp">—</div><div class="detail" id="trace">等待检测</div></article>
+<article class="card"><div class="label">公网连通（中立站点）</div><div class="value" id="claudeStatus">—</div><div class="detail" id="claudeDetail">不登录账号，不验证对话权限。</div></article>
+<article class="card wide section"><div class="label">Clash / 分流状态</div><div class="row"><span>运行模式</span><strong id="mode">—</strong></div><div class="row"><span>TUN 虚拟网卡</span><strong id="tun">—</strong></div><div class="row"><span>当前节点组</span><strong id="groups">—</strong></div><div class="detail" id="clashDetail"></div></article>
+<article class="card section"><div class="label">监控与纠正</div><div class="row"><span>轮询间隔</span><strong id="interval">—</strong></div><div class="row"><span>自动恢复节点</span><strong id="autoFix">—</strong></div><div class="detail" id="repair">—</div><div class="detail" id="updated">—</div></article>
+</div>
+<section class="section"><h2>最近检测记录 <small style="font-weight:400;color:#7b887f;font-size:12px">保留最近 100 次</small></h2><div class="scroll"><table><thead><tr><th>检测时间</th><th>状态</th><th>结果与纠正</th></tr></thead><tbody id="history"><tr><td colspan="3">等待首次检测完成…</td></tr></tbody></table></div></section>
+<footer>仅供本机查看 · 不收集账号凭据 · 不更改 VPN / TUN / 分流规则。<br>监控仅访问中立测速站。未覆盖所有系统程序、WebRTC 和 DNS 泄漏。</footer>
+</main>
+<script>
+const el=id=>document.getElementById(id), labels={ok:'通过',warning:'需确认',error:'异常'};
+const set=(id,text)=>el(id).textContent=text;
+const date=t=>new Date(t*1000).toLocaleString('zh-CN',{hour12:false});
+let cached=null, offline=false;
+function hero(){
+ const s=cached, stale=s?.updated_at && Date.now()/1000-s.updated_at>Math.max(120,(s.interval||60)*2);
+ const status=offline||stale?'error':s?.status||'warning';
+ el('hero').className='hero '+status;
+ const rows=s?.checks||[], e=s?.expected_ip, c=s?.clash;
+ if(offline||stale||!s?.updated_at||rows.length!==3){set('grade','暂无有效评分');set('breakdown','等待最新完整检测。')}
+ else{
+ const points=[rows[0].status==='ok'&&rows[0].ip===e?35:0,rows[1].status==='ok'?35:0];
+ points.push(c?.status==='ok'?15:0, rows[2].status==='ok'?15:0);
+ const sum=points.reduce((a,b)=>a+b,0),grade=c?.status!=='ok'||rows[2].status!=='ok'?Math.min(84,sum):sum;
+ set('grade',grade+' / 100 · '+(grade>=85?'合格，无需调整':'未达标，请检查'));
+ set('breakdown','公网出口 '+points[0]+'/35　分流规则 '+points[1]+'/35　Clash '+points[2]+'/15　公网连通 '+points[3]+'/15'+(sum>grade?' · 关键项异常，最高 84 分':''));
+ }
+ set('headline',offline?'监控后台无法连接':stale?'检测结果已过期':!s?.updated_at?'首次检测中':status==='ok'?'出口一致 · 网络可达':status==='warning'?'出口检测完成 · 部分项目需确认':'检测发现异常');
+ set('summary',offline?'请检查本机监控服务是否运行；下方保留最后一次结果。':stale?'后台可能停止或检测卡住，请勿将旧数据视为当前状态。':s?.summary||'正在检测 IP、Claude 以及 Clash 状态…');
+ set('heartbeat',offline?'后台离线':stale?'结果过期':s?.checking?'检测中…':s?.next_at?'下次检测 '+Math.max(0,Math.ceil(s.next_at-Date.now()/1000))+' 秒':'后台已连接');
+}
+function render(s){
+ const [ip={},trace={},page={}]=s.checks||[],clash=s.clash||{};
+ set('publicIp',ip.ip||'未取得');set('expected','预期 '+(s.expected_ip||'—')+' · '+(labels[ip.status]||'等待'));
+ set('claudeIp',trace.status==='ok'?'已限定':'未确认');set('trace',trace.detail||'等待检测');
+ set('claudeStatus',page.status==='warning'?'待浏览器确认':page.status==='ok'?'网站可达':page.status==='error'?'连接异常':'检测中');
+ el('claudeStatus').className='value '+(page.status||'');
+ set('claudeDetail',page.detail||'等待检测');
+ set('mode',({rule:'规则模式',global:'全局模式',direct:'直连模式'})[clash.mode]||'未知');
+ set('tun',clash.tun===true?'开启':clash.tun===false?'关闭':'未知');
+ set('groups',Object.entries(clash.selected||{}).map(([k,v])=>k+' → '+(v||'未找到')).join(' / ')||'未知');
+ set('clashDetail',clash.detail||'正在读取');
+ set('interval',(s.interval||60)+' 秒');set('autoFix',s.auto_fix?'已开启':'仅监控');set('repair',s.repair||'尚未执行');
+ set('updated',s.updated_at?'最近检测：'+date(s.updated_at):'等待首次检测');
+ const tbody=el('history');tbody.replaceChildren();
+ for(const h of [...(s.history||[])].reverse().slice(0,30)){
+   const tr=document.createElement('tr');
+   for(const text of [date(h.time),labels[h.status]||h.status,h.summary+' · '+h.repair]){
+     const td=document.createElement('td');td.textContent=text;tr.appendChild(td);
+   }
+   tr.children[1].className=h.status;tbody.appendChild(tr);
+ }
+ hero();
+}
+async function poll(){try{const r=await fetch('/api/status',{signal:AbortSignal.timeout(3000)});if(!r.ok)throw Error();cached=await r.json();offline=false;render(cached)}catch{offline=true;hero()}}
+el('refresh').onclick=poll;poll();setInterval(poll,3000);setInterval(hero,1000);
+</script></html>
