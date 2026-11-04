@@ -44,6 +44,8 @@ def install():
         app=Path(tmp)/"IPClaudePanel.app"; mac=app/"Contents/MacOS"; mac.mkdir(parents=True)
         shutil.copy2(ROOT/"panel/Info.plist",app/"Contents")
         (app/"Contents/Resources").mkdir()
+        for name in ("Prepare.command","prepare_environment.py"):
+            shutil.copy2(ROOT/"panel"/name,app/"Contents/Resources")
         shutil.copy2(ROOT/"panel/egress-test.html",app/"Contents/Resources")
         shutil.copy2(ROOT/"panel/morelogin-guide.html",app/"Contents/Resources")
         shutil.copy2(ROOT/"panel/AppIcon.icns",app/"Contents/Resources")
