@@ -35,8 +35,8 @@ final class SetupWizard: NSObject {
         stage=n;renderFlow()
     }
     @objc private func selectStage(_ sender:NSSegmentedControl){go(sender.selectedSegment)}
-    @objc private func browserStep(){go(2)}
-    @objc private func cloudStep(){go(3)}
+    @objc private func browserStep(){go(3)}
+    @objc private func cloudStep(){go(4)}
     private let health = NSTextField(wrappingLabelWithString:"等待读取监控结果…")
     private let guide="https://tssoft.atlassian.net/wiki/spaces/AI2/pages/2667121483/Claude"
     private let cloudGuide="https://tssoft.atlassian.net/wiki/spaces/AI2/pages/1979711914/Claude"
@@ -48,9 +48,20 @@ final class SetupWizard: NSObject {
     private func renderFlow(){
         for v in stack.arrangedSubviews { stack.removeArrangedSubview(v);v.removeFromSuperview() }
         fields.removeAll();result.stringValue=""
-        let nav=NSSegmentedControl(labels:["1  IPRoyal 固定 IP","2  Clash 配置","3  MoreLogin","4  HubStudio"],trackingMode:.selectOne,target:self,action:#selector(selectStage(_:)))
+        let nav=NSSegmentedControl(labels:["1  旧环境","2  IPRoyal","3  Clash","4  MoreLogin","5  HubStudio"],trackingMode:.selectOne,target:self,action:#selector(selectStage(_:)))
         nav.selectedSegment=stage;stack.addArrangedSubview(nav)
         if stage==0 {
+            title("这台 Mac 需要清理旧环境吗？")
+            note("第一次使用 Claude，或继续用当前账号？可以直接准备固定出口。")
+            button("无需清理，继续 IPRoyal →",#selector(editDelivery))
+            title("旧电脑需要更换账号")
+            note("先按团队教程「准备工作 → 旧电脑环境清理」打开换号清理手册。涉及 CLI 或桌面端时，先阅读备份范围和会话历史丢失说明，再决定是否处理。普通系统缓存和日志不用清。")
+            link("打开团队教程 · 旧电脑环境清理（需团队权限）",guide)
+            note("浏览器部分要在旧账号自己的浏览器配置文件中操作。Chrome 可复制下方地址到旧窗口，搜索 claude.ai 和 anthropic.com，分别移除对应站点数据。这会退出这些站点。Safari：设置 → 隐私 → 管理网站数据。")
+            button("复制 Chrome 站点数据设置地址",#selector(copySiteSettings))
+            note("按手册完成后，彻底退出并重新打开浏览器，为新账号创建单独的浏览器配置文件。此向导不读取账号，也不会代你删除文件或钥匙串。")
+            button("已按手册处理，继续 IPRoyal →",#selector(editDelivery))
+        } else if stage==1 {
             title("获取 IPRoyal 固定出口")
             note("团队已分配固定 IP？不用重复购买，可以直接进入 Clash 配置。首次购买按下面三步操作。")
             note("① 在 IPRoyal 登录，左侧选 ISP → Create a new order。选择 ISP Proxies（独享静态住宅 IP），不要选轮换住宅代理。")
@@ -65,7 +76,7 @@ final class SetupWizard: NSObject {
             button("检查交付参数，带入 Clash →",#selector(checkDelivery))
             button("已配置或由团队分配 · 直接查看 Clash",#selector(skipPurchase))
             note("本步检查字段格式，不代表订单已支付或线路已通。下一步将从专用端口检测实际出口。")
-        } else if stage==1 {
+        } else if stage==2 {
             title("配置 Clash 固定出口")
             stack.addArrangedSubview(health);health.preferredMaxLayoutWidth=550
             note("上游是连接 IPRoyal 之前经过的代理节点（例如 TrueSight）。这里填上游自己的服务器和认证信息。")
@@ -86,11 +97,11 @@ final class SetupWizard: NSObject {
             row("上游认证","upUser","用户名（可选）","upPass","密码",true)
             }
             if deliveryValid {
-                note("沿用第 1 步：SOCKS5　"+value("ipHost")+":"+value("ipPort")+"　·　固定出口 "+value("expected"))
+                note("沿用第 2 步：SOCKS5　"+value("ipHost")+":"+value("ipPort")+"　·　固定出口 "+value("expected"))
             } else {
-                note("使用现有配置可直接检测。若要生成新配置，请先在第 1 步填写 IPRoyal 资料。")
+                note("使用现有配置可直接检测。若要生成新配置，请先在第 2 步填写 IPRoyal 资料。")
             }
-            button(deliveryValid ? "修改第 1 步的 IPRoyal 资料" : "前往第 1 步填写 IPRoyal 资料",#selector(editDelivery))
+            button(deliveryValid ? "修改第 2 步的 IPRoyal 资料" : "前往第 2 步填写 IPRoyal 资料",#selector(editDelivery))
             single("本机监听端口","port","例如 1133")
             note("1133 是本工具默认的本机入口。MoreLogin 在同一台 Mac 上连接 127.0.0.1:1133。仅端口冲突时才需更改，两处要一致。")
             if draft["port"]==nil {fields["port"]?.stringValue="1133"}
@@ -102,7 +113,7 @@ final class SetupWizard: NSObject {
             button("启用监控",#selector(enable))
             button("完成 Clash 配置 · 立即检测",#selector(checkLocal(_:)))
             button("下一步：MoreLogin 浏览器 →",#selector(browserStep))
-        } else if stage==2 {
+        } else if stage==3 {
             title("让 MoreLogin 浏览器使用固定出口")
             button("看图操作 · 五张真实截图",#selector(openPictureGuide))
             note("1   在这台 Mac 上打开 MoreLogin。编辑团队分给你的环境；还没有环境，就选「新建环境 → 浏览器环境 → 高级创建」。")
@@ -122,7 +133,7 @@ final class SetupWizard: NSObject {
             }
             link("MoreLogin 官方操作示例","https://support.morelogin.com/en/articles/10198892-advanced-create")
             button("下一步：HubStudio 云真机 →",#selector(cloudStep))
-        } else if stage==3 {
+        } else if stage==4 {
             title("在 HubStudio 中连接云真机")
             note("打开分配给你的云真机，按教程设置同一固定出口，再在设备内完成登录。工具只能验收本机，不能替你判断云真机是否已连通。")
             button("打开 HubStudio",#selector(openCloud))
@@ -136,11 +147,11 @@ final class SetupWizard: NSObject {
         }
         result.textColor = .secondaryLabelColor; stack.addArrangedSubview(result)
         result.widthAnchor.constraint(lessThanOrEqualTo:stack.widthAnchor).isActive=true
-        win.setContentSize(NSSize(width:640,height:stage==0 || stage==1 ? 680 : stage==2 ? 585 : 490))
+        win.setContentSize(NSSize(width:640,height:stage<=2 ? 680 : stage==3 ? 585 : 490))
         refreshHealth()
     }
     @objc private func changeSource(_ sender:NSSegmentedControl){
-        subscriptionMode=sender.selectedSegment==0;go(1)
+        subscriptionMode=sender.selectedSegment==0;go(2)
     }
     static func providerURL(_ input:String)->String?{
         let raw=input.trimmingCharacters(in:.whitespacesAndNewlines)
@@ -173,8 +184,14 @@ final class SetupWizard: NSObject {
         for (key,v) in ["upHost":host,"upPort":String(port),"upUser":user,"upPass":pass,"upURI":""]{fields[key]?.stringValue=v}
         result.stringValue="已在本机解析节点链接，未发起连接。"
     }
-    @objc private func skipPurchase(){go(1)}
-    @objc private func editDelivery(){go(0)}
+    @objc private func copySiteSettings(){
+        let board=NSPasteboard.general
+        board.clearContents()
+        board.setString("chrome://settings/content/all?searchSubpage=claude.ai",forType:.string)
+        result.stringValue="已复制。请粘贴到旧 Chrome 配置文件的地址栏；清理后再搜索 anthropic.com。"
+    }
+    @objc private func skipPurchase(){go(2)}
+    @objc private func editDelivery(){go(1)}
     private var deliveryValid:Bool {
         let host=value("ipHost").trimmingCharacters(in:.whitespacesAndNewlines)
         let ip=value("expected").trimmingCharacters(in:.whitespacesAndNewlines)
@@ -185,7 +202,7 @@ final class SetupWizard: NSObject {
     }
     @objc private func checkDelivery(){
         guard deliveryValid else{result.stringValue="请检查 IPRoyal 服务器、端口、预期出口 IP，以及成对填写的代理用户名和密码。";return}
-        go(1);result.stringValue="已带入 IPRoyal 资料。这里只需补充上游参数。"
+        go(2);result.stringValue="已带入 IPRoyal 资料。这里只需补充上游参数。"
     }
     @objc private func openCloud(){openClient("Hubstudio",fallback:"https://www.hubstudio.cn/")}
     private func openClient(_ name:String,fallback:String){
@@ -213,7 +230,7 @@ final class SetupWizard: NSObject {
               let template=try? String(contentsOf:f,encoding:.utf8) else{result.stringValue="请先完成固定出口设置。";return}
         var a=in_addr(),b=in6_addr()
         guard inet_pton(AF_INET,cfg.ip,&a)==1 || inet_pton(AF_INET6,cfg.ip,&b)==1 else{result.stringValue="预期出口 IP 无效。";return}
-        let name=stage==3 ? "HubStudio 云真机" : "MoreLogin 浏览器"
+        let name=stage==4 ? "HubStudio 云真机" : "MoreLogin 浏览器"
         let page=template.replacingOccurrences(of:"__ENV__",with:name).replacingOccurrences(of:"__IP__",with:cfg.ip)
         let board=NSPasteboard.general;board.clearContents();board.setString("data:text/html;charset=utf-8;base64,"+Data(page.utf8).base64EncodedString(),forType:.string)
         result.stringValue="已复制检测页。请在"+name+"的地址栏粘贴并回车，结果会显示在该环境内。"
@@ -231,7 +248,7 @@ final class SetupWizard: NSObject {
             let t=Process(),pipe=Pipe();t.executableURL=URL(fileURLWithPath:py);t.arguments=["-B",script.path,cfg.path];t.standardOutput=pipe;t.standardError=FileHandle.nullDevice
             let msg:String
             do{try t.run();let data=pipe.fileHandleForReading.readDataToEndOfFile();t.waitUntilExit();msg=String(data:data,encoding:.utf8)?.trimmingCharacters(in:.whitespacesAndNewlines) ?? ""}catch{msg=""}
-            DispatchQueue.main.async{self.runningCheck=false;sender.isEnabled=true;if self.stage==1{self.result.stringValue=msg.isEmpty ? "未取得检测结果，请检查 Python 环境。" : msg}}
+            DispatchQueue.main.async{self.runningCheck=false;sender.isEnabled=true;if self.stage==2{self.result.stringValue=msg.isEmpty ? "未取得检测结果，请检查 Python 环境。" : msg}}
         }
     }
     @objc private func compareBrowserIP(){

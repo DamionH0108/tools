@@ -3,7 +3,9 @@
 
 ## 第一次使用：从零搭建
 解压团队提供的 Claude-Guard-macOS.zip，将 IPClaudePanel.app 拖到“应用程序”再打开。首次自动显示向导；已有用户可从菜单栏 IP → 从零搭建，或详情窗口左上角进入。支持 Intel 和 Apple 芯片，macOS 12+。此包使用本地签名，未经 Apple 公证；如公司策略禁止运行，请让团队管理员签名分发。
-搭建窗口从 IPRoyal ISP 购买、提取 SOCKS5 信息与交付参数检查开始；已有代理可跳过。随后进入 Clash 配置，顶部可切换 MoreLogin 浏览器、HubStudio 云真机。上游代理、IPRoyal、预期 IP 和本机端口可直接填写；生成文件后手动导入为新订阅。自动验收只更新状态，不会跳页。常驻监控需要 Python 3.9+。
+向导第一步是「旧电脑环境清理」。新电脑或继续使用当前账号可直接跳过；需要换号的旧电脑可从向导打开团队手册，并在旧浏览器配置文件中分别移除 claude.ai 与 anthropic.com 的站点数据。普通系统缓存和日志无需清理。涉及 CLI、桌面端或钥匙串时，先看手册的备份范围与历史丢失说明；向导不会自动删除。
+
+第二步从 IPRoyal ISP 购买、提取 SOCKS5 信息与交付参数检查开始；已有代理可跳过。随后进入 Clash 配置，顶部可切换 MoreLogin 浏览器、HubStudio 云真机。上游代理、IPRoyal、预期 IP 和本机端口可直接填写；生成文件后手动导入为新订阅。自动验收只更新状态，不会跳页。常驻监控需要 Python 3.9+。
 MoreLogin → Google 登录 → HubStudio 云真机属于同一流程，页面提供操作入口，无需逐项打勾。尚未对接云端出口或账号状态。账号验证和订阅在相应平台完成。
 源码构建：在装有 Xcode 工具链的 Mac 上运行 `./build-mac.sh`，得到本地签名的通用应用包。
 
@@ -21,4 +23,4 @@ MoreLogin → Google 登录 → HubStudio 云真机属于同一流程，页面�
 更新：备份本地配置，拉取代码，重新 configure，按步骤更新 Clash 脚本并执行 install；退出再打开原生面板。若发现同名个人旧版，安装器会停止，不覆盖旧版。
 卸载：退出面板，运行 `launchctl bootout "gui/$(id -u)/com.codex.ip-claude-monitor"`，然后移除 ~/Library/LaunchAgents/com.codex.ip-claude-monitor.plist、~/Applications/IPClaudePanel.app、~/Library/Application Support/ip-claude-monitor 以及自己添加的登录项。要取消代理限制，在 Clash 移除新增扩展并重载。检测记录在 ~/Library/Logs/ip-claude-monitor.log，仅保存在本机。
 
-上游支持 Clash 兼容的 HTTP(S) 订阅。第 2 页选「订阅链接」，粘贴后生成配置并导入 Clash，在 Team-Upstream 选择节点。订阅仅提供上游节点；最终出口仍是 IPRoyal。生成的配置含订阅令牌和代理凭据，仅供本人保存。
+上游支持 Clash 兼容的 HTTP(S) 订阅。在「Clash」页选「订阅链接」，粘贴后生成配置并导入 Clash，在 Team-Upstream 选择节点。订阅仅提供上游节点；最终出口仍是 IPRoyal。生成的配置含订阅令牌和代理凭据，仅供本人保存。
